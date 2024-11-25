@@ -9,8 +9,6 @@ services:
         value: 3.9.0
       - key: SECRET_KEY
         generateValue: true
-      - key: DATABASE_URL
-        value: sqlite:///data/tea_reviews.db
       - key: FLASK_ENV
         value: production
     disk:

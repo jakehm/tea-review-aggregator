@@ -13,14 +13,24 @@ app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 # Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', f'sqlite:///{os.path.join(basedir, "tea_reviews.db")}')
+if os.environ.get('FLASK_ENV') == 'production':
+    # Use persistent storage in production
+    db_path = '/data/tea_reviews.db'
+    uploads_path = '/static/uploads'
+else:
+    # Use local paths in development
+    db_path = os.path.join(basedir, 'tea_reviews.db')
+    uploads_path = os.path.join(basedir, 'static', 'uploads')
+
+# Ensure directories exist
+os.makedirs(os.path.dirname(db_path), exist_ok=True)
+os.makedirs(uploads_path, exist_ok=True)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-please-change')
-app.config['UPLOAD_FOLDER'] = os.path.join(basedir, 'static', 'uploads')
+app.config['UPLOAD_FOLDER'] = uploads_path
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-# Ensure upload directory exists
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -103,6 +113,14 @@ class Comment(db.Model):
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+def init_db():
+    if not os.path.exists(db_path):
+        with app.app_context():
+            db.create_all()
+            print(f"Database initialized at: {db_path}")
+
+init_db()
 
 @app.route('/')
 def index():
@@ -242,9 +260,6 @@ def add_comment(review_id):
     
     flash('Comment added successfully')
     return redirect(url_for('view_tea', tea_id=review.tea.id))
-
-with app.app_context():
-    db.create_all()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
