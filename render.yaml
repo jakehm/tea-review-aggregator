@@ -3,13 +3,21 @@ services:
     name: tea-reviews
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    startCommand: gunicorn --config gunicorn_config.py app:app
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
       - key: SECRET_KEY
         generateValue: true
+      - key: DATABASE_URL
+        value: sqlite:///data/tea_reviews.db
+      - key: FLASK_ENV
+        value: production
     disk:
-      name: uploads
-      mountPath: /static/uploads
+      name: tea-reviews-data
+      mountPath: /data
       sizeGB: 1
+    filesystem:
+      - mountPath: /static/uploads
+        name: uploads
+        sizeGB: 1
