@@ -17,7 +17,9 @@ services:
       name: tea-reviews-data
       mountPath: /data
       sizeGB: 1
+      persistentId: tea-reviews-db
     filesystem:
       - mountPath: /static/uploads
         name: uploads
         sizeGB: 1
+        persistentId: tea-reviews-uploads
