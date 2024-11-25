@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="tea-detail">
+    <div class="tea-header">
+        <h1>{{ tea.name }}</h1>
+        <div class="tea-info">
+            <p><strong>Vendor:</strong> {{ tea.vendor }}</p>
+            <p><strong>Producer:</strong> {{ tea.producer }}</p>
+            <p><strong>Type:</strong> {{ tea.tea_type }}</p>
+            <p><strong>Average Rating:</strong> {{ "%.1f"|format(tea.average_rating) }}/5 ({{ tea.reviews|length }} reviews)</p>
+        </div>
+    </div>
+
+    {% if current_user.is_authenticated %}
+    <div class="add-review-section">
+        <h2>Add Your Review</h2>
+        <form action="{{ url_for('add_tea') }}" method="post" enctype="multipart/form-data" class="review-form">
+            <input type="hidden" name="tea_name" value="{{ tea.name }}">
+            <input type="hidden" name="vendor" value="{{ tea.vendor }}">
+            <input type="hidden" name="producer" value="{{ tea.producer }}">
+            <input type="hidden" name="tea_type" value="{{ tea.tea_type }}">
+            
+            <div class="form-group">
+                <label for="price">Price (optional):</label>
+                <input type="text" name="price" id="price" placeholder="e.g., $100/359g">
+            </div>
+
+            <div class="form-group">
+                <label for="rating">Rating:</label>
+                <select name="rating" id="rating" required>
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="3">3 - Good</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="1">1 - Poor</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="review">Your Review:</label>
+                <textarea name="review" id="review" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="image">Add Image (optional):</label>
+                <input type="file" name="image" id="image" accept="image/*" onchange="previewImage(event)">
+                <div id="imagePreview" class="image-preview"></div>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit Review</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="reviews-section">
+        <h2>Reviews</h2>
+        {% if reviews %}
+            {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-header">
+                    <span class="username">{{ review.author.username }}</span>
+                    <span class="rating">{{ "★" * review.rating }}{{ "☆" * (5 - review.rating) }}</span>
+                    <span class="date">{{ review.created_at.strftime('%Y-%m-%d') }}</span>
+                </div>
+                {% if review.price %}
+                <div class="review-info">
+                    <span class="price">{{ review.price }}</span>
+                </div>
+                {% endif %}
+                {% if review.image_filename %}
+                <div class="review-image">
+                    <img src="{{ url_for('static', filename='uploads/' + review.image_filename) }}" alt="Review image">
+                </div>
+                {% endif %}
+                <p class="review-text">{{ review.review }}</p>
+                
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <h4>Comments</h4>
+                    {% if review.comments %}
+                        {% for comment in review.comments %}
+                        <div class="comment">
+                            <div class="comment-header">
+                                <span class="username">{{ comment.author.username }}</span>
+                                <span class="date">{{ comment.created_at.strftime('%Y-%m-%d') }}</span>
+                            </div>
+                            <p class="comment-content">{{ comment.content }}</p>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if current_user.is_authenticated %}
+                    <form action="{{ url_for('add_comment', review_id=review.id) }}" method="post" class="comment-form">
+                        <div class="form-group">
+                            <textarea name="content" placeholder="Add a comment..." required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">Add Comment</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="no-reviews">No reviews yet. Be the first to review this tea!</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/preview.js') }}"></script>
+{% endblock %}

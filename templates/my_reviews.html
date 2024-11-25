@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reviews - Tea Reviews</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>My Tea Reviews</h1>
+            <nav class="main-nav">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </nav>
+        </header>
+
+        <section class="reviews">
+            <h2>Your Reviews</h2>
+            {% if reviews %}
+                {% for review in reviews %}
+                <div class="review-card">
+                    <h3>{{ review.tea_name }}</h3>
+                    <p class="brand">Brand: {{ review.brand }}</p>
+                    <div class="rating">
+                        {% for _ in range(review.rating) %}
+                        <span class="star">★</span>
+                        {% endfor %}
+                        {% for _ in range(5 - review.rating) %}
+                        <span class="star empty">☆</span>
+                        {% endfor %}
+                    </div>
+                    <p class="review-text">{{ review.review }}</p>
+                    <p class="date">{{ review.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-reviews">You haven't written any reviews yet.</p>
+            {% endif %}
+        </section>
+    </div>
+</body>
+</html>

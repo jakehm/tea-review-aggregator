@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <header>
+        <h1>Tea Reviews</h1>
+        <nav class="main-nav">
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('my_reviews') }}">My Reviews</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    {% if current_user.is_authenticated %}
+    <div class="review-section">
+        <div class="search-section">
+            <input type="text" id="teaSearch" placeholder="Search for a tea..." class="search-input">
+            <div id="searchResults" class="search-results"></div>
+        </div>
+        
+        <h2>Add a New Tea Review</h2>
+        <form id="reviewForm" action="{{ url_for('add_tea') }}" method="post" enctype="multipart/form-data" class="review-form">
+            <div class="form-group">
+                <label for="tea_name">Tea Name:</label>
+                <input type="text" name="tea_name" id="tea_name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="vendor">Vendor:</label>
+                <input type="text" name="vendor" id="vendor" required>
+            </div>
+
+            <div class="form-group">
+                <label for="producer">Producer:</label>
+                <input type="text" name="producer" id="producer" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tea_type">Type:</label>
+                <select name="tea_type" id="tea_type" required>
+                    <option value="Black">Black</option>
+                    <option value="Heicha">Heicha</option>
+                    <option value="Puer">Puer</option>
+                    <option value="White">White</option>
+                    <option value="Matcha">Matcha</option>
+                    <option value="Green">Green</option>
+                    <option value="Oolong">Oolong</option>
+                    <option value="Herbal">Herbal</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="price">Price (optional):</label>
+                <input type="text" name="price" id="price" placeholder="e.g., $100/359g">
+            </div>
+
+            <div class="form-group">
+                <label for="rating">Rating:</label>
+                <select name="rating" id="rating" required>
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Very Good</option>
+                    <option value="3">3 - Good</option>
+                    <option value="2">2 - Fair</option>
+                    <option value="1">1 - Poor</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="review">Your Review:</label>
+                <textarea name="review" id="review" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="image">Add Image (optional):</label>
+                <input type="file" name="image" id="image" accept="image/*" onchange="previewImage(event)">
+                <div id="imagePreview" class="image-preview"></div>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit Review</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="tea-list">
+        <h2>Recent Tea Reviews</h2>
+        {% for tea in teas %}
+        <div class="tea-card">
+            <h3><a href="{{ url_for('view_tea', tea_id=tea.id) }}">{{ tea.name }}</a></h3>
+            <div class="tea-info">
+                <p><strong>Vendor:</strong> {{ tea.vendor }}</p>
+                <p><strong>Producer:</strong> {{ tea.producer }}</p>
+                <p><strong>Type:</strong> {{ tea.tea_type }}</p>
+                <p><strong>Price:</strong> {{ tea.price }}</p>
+                <p><strong>Rating:</strong> {{ "%.1f"|format(tea.average_rating) }}/5 ({{ tea.reviews|length }} reviews)</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/preview.js') }}"></script>
+<script>
+let searchTimeout;
+let selectedIndex = -1;
+const searchInput = document.getElementById('teaSearch');
+const searchResults = document.getElementById('searchResults');
+const reviewForm = document.getElementById('reviewForm');
+const teaNameInput = document.getElementById('tea_name');
+const vendorInput = document.getElementById('vendor');
+const producerInput = document.getElementById('producer');
+const teaTypeInput = document.getElementById('tea_type');
+
+function clearSelection() {
+    const items = searchResults.getElementsByClassName('search-result-item');
+    for (let item of items) {
+        item.classList.remove('selected');
+    }
+}
+
+function selectResult(index) {
+    clearSelection();
+    const items = searchResults.getElementsByClassName('search-result-item');
+    if (index >= 0 && index < items.length) {
+        items[index].classList.add('selected');
+        items[index].scrollIntoView({ block: 'nearest' });
+        selectedIndex = index;
+    }
+}
+
+searchInput.addEventListener('keydown', function(e) {
+    const items = searchResults.getElementsByClassName('search-result-item');
+    if (items.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectResult(Math.min(selectedIndex + 1, items.length - 1));
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectResult(Math.max(selectedIndex - 1, 0));
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+        e.preventDefault();
+        items[selectedIndex].click();
+    } else if (e.key === 'Escape') {
+        searchResults.innerHTML = '';
+        selectedIndex = -1;
+    }
+});
+
+searchInput.addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    selectedIndex = -1;
+    const query = e.target.value.trim();
+    
+    if (query.length < 2) {
+        searchResults.innerHTML = '';
+        return;
+    }
+    
+    searchTimeout = setTimeout(() => {
+        fetch(`/search_tea?query=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                searchResults.innerHTML = '';
+                data.forEach((tea, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'search-result-item';
+                    div.innerHTML = `
+                        <div class="tea-name">${tea.name}</div>
+                        <div class="tea-details">
+                            Vendor: ${tea.vendor} | Producer: ${tea.producer} | Type: ${tea.tea_type} | Rating: ${tea.average_rating.toFixed(1)}/5 (${tea.review_count} reviews)
+                        </div>
+                    `;
+                    div.addEventListener('click', () => {
+                        window.location.href = `/tea/${tea.id}`;
+                    });
+                    div.addEventListener('mouseover', () => {
+                        selectResult(index);
+                    });
+                    searchResults.appendChild(div);
+                });
+            });
+    }, 300);
+});
+
+document.addEventListener('click', function(e) {
+    if (!searchResults.contains(e.target) && e.target !== searchInput) {
+        searchResults.innerHTML = '';
+        selectedIndex = -1;
+    }
+});
+</script>
+{% endblock %}
