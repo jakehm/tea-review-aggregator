@@ -1,44 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Reviews - Tea Reviews</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>My Tea Reviews</h1>
-            <nav class="main-nav">
-                <a href="{{ url_for('index') }}">Home</a>
-                <a href="{{ url_for('logout') }}">Logout</a>
-            </nav>
-        </header>
+{% extends "base.html" %}
 
-        <section class="reviews">
-            <h2>Your Reviews</h2>
-            {% if reviews %}
-                {% for review in reviews %}
-                <div class="review-card">
-                    <h3>{{ review.tea_name }}</h3>
-                    <p class="brand">Brand: {{ review.brand }}</p>
-                    <div class="rating">
-                        {% for _ in range(review.rating) %}
-                        <span class="star">★</span>
-                        {% endfor %}
-                        {% for _ in range(5 - review.rating) %}
-                        <span class="star empty">☆</span>
-                        {% endfor %}
+{% block content %}
+<div class="container mt-4">
+    <h2>My Tea Reviews</h2>
+
+    <div class="row">
+        {% if reviews %}
+            {% for review in reviews %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    {% if review.image_filename %}
+                    <img src="{{ url_for('static', filename='uploads/' + review.image_filename) }}" 
+                         class="card-img-top" alt="Tea image">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ url_for('view_tea', tea_id=review.tea.id) }}">{{ review.tea.name }}</a>
+                        </h5>
+                        <p class="card-text">
+                            <strong>Vendor:</strong> {{ review.tea.vendor }}<br>
+                            <strong>Producer:</strong> {{ review.tea.producer }}<br>
+                            <strong>Type:</strong> {{ review.tea.tea_type }}<br>
+                            {% if review.price %}
+                            <strong>Price:</strong> {{ review.price }}<br>
+                            {% endif %}
+                            <strong>Rating:</strong>
+                            {% for _ in range(review.rating) %}★{% endfor %}{% for _ in range(5 - review.rating) %}☆{% endfor %}
+                            <br>
+                            {% if review.review %}
+                            <strong>Review:</strong><br>
+                            {{ review.review }}
+                            {% endif %}
+                        </p>
+                        <div class="card-footer text-muted">
+                            Reviewed on {{ review.created_at.strftime('%Y-%m-%d') }}
+                        </div>
                     </div>
-                    <p class="review-text">{{ review.review }}</p>
-                    <p class="date">{{ review.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
                 </div>
-                {% endfor %}
-            {% else %}
-                <p class="no-reviews">You haven't written any reviews yet.</p>
-            {% endif %}
-        </section>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <p>You haven't written any reviews yet.</p>
+                <a href="{{ url_for('index') }}" class="btn btn-primary">Browse Teas to Review</a>
+            </div>
+        {% endif %}
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">{{ title }}</h2>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for tea in teas %}
+        <div class="col">
+            <div class="card h-100">
+                {% if tea.reviews and tea.reviews[0].image_filename %}
+                <img src="{{ url_for('static', filename='uploads/' + tea.reviews[0].image_filename) }}" 
+                     class="card-img-top tea-image" alt="{{ tea.name }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ tea.name }}</h5>
+                    <p class="card-text">
+                        <strong>Producer:</strong> {{ tea.producer }}<br>
+                        <strong>Type:</strong> {{ tea.tea_type }}<br>
+                        <strong>Average Rating:</strong> {{ "%.1f"|format(tea.average_rating) }}/5<br>
+                        <strong>Reviews:</strong> {{ tea.reviews|length }}
+                    </p>
+                    {% if tea.reviews %}
+                    <div class="vendors mt-3">
+                        <strong>Available from:</strong>
+                        <ul class="list-unstyled">
+                            {% for review in tea.reviews|unique(attribute='vendor') %}
+                            <li>
+                                <a href="{{ url_for('filter_teas', filter_type='vendor', value=review.vendor) }}" 
+                                   class="text-decoration-none">
+                                    {{ review.vendor }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    <a href="{{ url_for('view_tea', tea_id=tea.id) }}" class="btn btn-primary mt-2">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p>No teas found.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="container">
-    <header>
+    <header class="text-center mb-4">
         <h1>Tea Reviews</h1>
         <nav class="main-nav">
             {% if current_user.is_authenticated %}
@@ -16,89 +16,136 @@
     </header>
 
     {% if current_user.is_authenticated %}
-    <div class="review-section">
-        <div class="search-section">
-            <input type="text" id="teaSearch" placeholder="Search for a tea..." class="search-input">
-            <div id="searchResults" class="search-results"></div>
+    <div class="row">
+        <!-- Search Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Search Teas</h2>
+                    <div class="search-section">
+                        <input type="text" id="teaSearch" placeholder="Search for a tea..." class="form-control mb-2">
+                        <div id="searchResults" class="search-results"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <h2>Add a New Tea Review</h2>
-        <form id="reviewForm" action="{{ url_for('add_tea') }}" method="post" enctype="multipart/form-data" class="review-form">
-            <div class="form-group">
-                <label for="tea_name">Tea Name:</label>
-                <input type="text" name="tea_name" id="tea_name" required>
-            </div>
 
-            <div class="form-group">
-                <label for="vendor">Vendor:</label>
-                <input type="text" name="vendor" id="vendor" required>
-            </div>
+        <!-- Add Review Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Add a New Tea Review</h2>
+                    <form id="reviewForm" action="{{ url_for('add_tea') }}" method="post" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="tea_name">Tea Name:</label>
+                                    <input type="text" name="tea_name" id="tea_name" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="vendor">Vendor:</label>
+                                    <input type="text" name="vendor" id="vendor" class="form-control" required>
+                                </div>
+                            </div>
+                        </div>
 
-            <div class="form-group">
-                <label for="producer">Producer:</label>
-                <input type="text" name="producer" id="producer" required>
-            </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="producer">Producer:</label>
+                                    <input type="text" name="producer" id="producer" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="tea_type">Type:</label>
+                                    <select name="tea_type" id="tea_type" class="form-control" required>
+                                        <option value="Black">Black</option>
+                                        <option value="Heicha">Heicha</option>
+                                        <option value="Puer">Puer</option>
+                                        <option value="White">White</option>
+                                        <option value="Matcha">Matcha</option>
+                                        <option value="Green">Green</option>
+                                        <option value="Oolong">Oolong</option>
+                                        <option value="Herbal">Herbal</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
 
-            <div class="form-group">
-                <label for="tea_type">Type:</label>
-                <select name="tea_type" id="tea_type" required>
-                    <option value="Black">Black</option>
-                    <option value="Heicha">Heicha</option>
-                    <option value="Puer">Puer</option>
-                    <option value="White">White</option>
-                    <option value="Matcha">Matcha</option>
-                    <option value="Green">Green</option>
-                    <option value="Oolong">Oolong</option>
-                    <option value="Herbal">Herbal</option>
-                </select>
-            </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="price">Price (optional):</label>
+                                    <input type="text" name="price" id="price" class="form-control" placeholder="e.g., $100/359g">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-group">
+                                    <label for="rating">Rating:</label>
+                                    <select name="rating" id="rating" class="form-control" required>
+                                        <option value="5">5 - Excellent</option>
+                                        <option value="4">4 - Very Good</option>
+                                        <option value="3">3 - Good</option>
+                                        <option value="2">2 - Fair</option>
+                                        <option value="1">1 - Poor</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
 
-            <div class="form-group">
-                <label for="price">Price (optional):</label>
-                <input type="text" name="price" id="price" placeholder="e.g., $100/359g">
-            </div>
+                        <div class="form-group mb-3">
+                            <label for="review">Your Review:</label>
+                            <textarea name="review" id="review" class="form-control" required></textarea>
+                        </div>
 
-            <div class="form-group">
-                <label for="rating">Rating:</label>
-                <select name="rating" id="rating" required>
-                    <option value="5">5 - Excellent</option>
-                    <option value="4">4 - Very Good</option>
-                    <option value="3">3 - Good</option>
-                    <option value="2">2 - Fair</option>
-                    <option value="1">1 - Poor</option>
-                </select>
-            </div>
+                        <div class="form-group mb-3">
+                            <label for="image">Add Image (optional):</label>
+                            <input type="file" name="image" id="image" class="form-control" accept="image/*" onchange="previewImage(event)">
+                            <div id="imagePreview" class="image-preview mt-2"></div>
+                        </div>
 
-            <div class="form-group">
-                <label for="review">Your Review:</label>
-                <textarea name="review" id="review" required></textarea>
+                        <button type="submit" class="btn btn-primary w-100">Submit Review</button>
+                    </form>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label for="image">Add Image (optional):</label>
-                <input type="file" name="image" id="image" accept="image/*" onchange="previewImage(event)">
-                <div id="imagePreview" class="image-preview"></div>
-            </div>
-
-            <button type="submit" class="submit-btn">Submit Review</button>
-        </form>
+        </div>
     </div>
     {% endif %}
 
-    <div class="tea-list">
-        <h2>Recent Tea Reviews</h2>
-        {% for tea in teas %}
-        <div class="tea-card">
-            <h3><a href="{{ url_for('view_tea', tea_id=tea.id) }}">{{ tea.name }}</a></h3>
-            <div class="tea-info">
-                <p><strong>Vendor:</strong> {{ tea.vendor }}</p>
-                <p><strong>Producer:</strong> {{ tea.producer }}</p>
-                <p><strong>Type:</strong> {{ tea.tea_type }}</p>
-                <p><strong>Price:</strong> {{ tea.price }}</p>
-                <p><strong>Rating:</strong> {{ "%.1f"|format(tea.average_rating) }}/5 ({{ tea.reviews|length }} reviews)</p>
+    <!-- Recent Reviews Section -->
+    <div class="tea-list mt-4">
+        <h2 class="mb-4">Recent Tea Reviews</h2>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for tea in teas %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h3 class="card-title">
+                            <a href="{{ url_for('view_tea', tea_id=tea.id) }}" class="text-decoration-none">{{ tea.name }}</a>
+                        </h3>
+                        <div class="tea-info">
+                            <p class="mb-1"><strong>Vendor:</strong> {{ tea.vendor }}</p>
+                            <p class="mb-1"><strong>Producer:</strong> {{ tea.producer }}</p>
+                            <p class="mb-1"><strong>Type:</strong> {{ tea.tea_type }}</p>
+                            <p class="mb-1"><strong>Price:</strong> {{ tea.price }}</p>
+                            {% if tea.reviews %}
+                            <p class="mb-1">
+                                <strong>Average Rating:</strong> 
+                                {{ "%.1f"|format(tea.average_rating) }} / 5 
+                                ({{ tea.reviews|length }} review{% if tea.reviews|length != 1 %}s{% endif %})
+                            </p>
+                            {% else %}
+                            <p class="text-muted"><em>No reviews yet</em></p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 </div>
 {% endblock %}
